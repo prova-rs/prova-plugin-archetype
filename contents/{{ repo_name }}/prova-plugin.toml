@@ -5,4 +5,4 @@ description = "{{ description }}"
 license     = "MIT"
 
 [requires]
-prova = ">=0.1, <0.2"
+prova = ">=0.2, <0.3"
