@@ -1,7 +1,20 @@
-# Self-test manifest: resolve this plugin from its own directory (via prova-plugin.toml) and run
-# tests/. A consumer would instead declare `{{ name }} = "prova-rs/prova-{{ name }}@v1"`.
+# One manifest, two hats. In Prova a plugin *is* a test suite that also exports a namespace, so this
+# single file both declares the plugin (`[plugin]`) and runs its proofs (`[run]`). Author the plugin
+# in init.lua; prove it in tests/; ship both together.
+[plugin]
+name        = "{{ name }}"
+description = "{{ description }}"
+license     = "MIT"
+
+# The range of prova versions this plugin is built against; a consumer is checked against it.
+[requires]
+prova = ">=0.3"
+
 [run]
 paths = ["tests"]
 
+# Resolve THIS plugin from its own directory, so the self-tests can `require("{{ name }}")` exactly as
+# a consumer would. A CONSUMER instead pins it by source — a released tag:
+#   {{ name }} = { git = "https://github.com/{{ org }}/prova-{{ name }}", tag = "v1" }
 [plugins]
 {{ name }} = { path = "." }

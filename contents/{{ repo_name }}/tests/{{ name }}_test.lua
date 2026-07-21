@@ -1,19 +1,11 @@
--- Self-test for prova-{{ name }}: provision the resource and assert its endpoint. Requires docker;
--- skips gracefully otherwise. Extend with real round-trips as you implement the client methods.
+-- Self-test for prova-{{ name }}. `require("{{ name }}")` resolves to THIS plugin — prova.toml
+-- declares it as a path plugin at "." — so the suite proves the plugin exactly the way a consumer
+-- uses it. Hermetic by default (no docker, no network): the bar the plugin must always clear.
+--
+-- As you grow the plugin, gate the tests that touch a real resource with `{ requires = { "docker" } }`
+-- (or the tool your topology needs), so they skip cleanly where it's absent instead of failing.
+local {{ name }} = require("{{ name }}")
 
-local resource = prova.fixture("{{ name }}", Scope.File, function(ctx)
-  return require("{{ name }}").container(ctx)
-end)
-
-prova.group("{{ name }}", { requires = { "docker" } }, function(g)
-  g:test("provisions and exposes an endpoint for the app under test", function(t)
-    t:expect(t:use(resource).url):matches("^{{ scheme }}://")
-  end)
-
-  -- TODO: assert a real round-trip once the client methods exist, e.g.:
-  -- g:test("round-trips", function(t)
-  --   local c = t:use(resource).client
-  --   c:put("k", "v")
-  --   t:expect(c:get("k")):equals("v")
-  -- end)
+prova.test("greets by name", function(t)
+  t:expect({{ name }}.greet("world")):equals("hello, world")
 end)

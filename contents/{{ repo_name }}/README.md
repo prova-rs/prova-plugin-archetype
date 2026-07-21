@@ -1,61 +1,49 @@
 # prova-{{ name }}
 
-A {{ category }} resource plugin for [Prova](https://github.com/prova-rs/prova) — {{ description }}.
+A plugin for [Prova](https://github.com/prova-rs/prova) — {{ description }}.
 
-A **docker-exec** plugin: zero native code. It provisions an ephemeral `{{ image }}` container, waits
-for readiness, and drives the CLI already in the image (`{{ cli }}`) — all through Prova's
-`prova.containerized` + `container:run` SDK.
+In Prova a plugin *is* a test suite that also exports a namespace: one `prova.toml` declares the
+plugin and runs its own proofs. This repo is that — author the plugin in `init.lua`, prove it in
+`tests/`, ship both.
 
 ## Use it
 
-Declare the plugin in your `prova.toml`:
+Declare it in your project's `prova.toml`, pinned to a released tag:
 
 ```toml
 [plugins]
-{{ name }} = "prova-rs/prova-{{ name }}@v1"   # org/repo shorthand (fetched, pinned, cached)
+{{ name }} = { git = "https://github.com/{{ org }}/prova-{{ name }}", tag = "v1" }
 ```
 
-Then in a test:
+Then `require` it in a test:
 
 ```lua
 local {{ name }} = require("{{ name }}")
 
-local resource = prova.fixture("{{ name }}", Scope.File, function(ctx)
-  return {{ name }}.container(ctx)          -- provisions, waits, attaches a client, ties teardown
-end)
-
-prova.group("example", { requires = { "docker" } }, function(g)
-  g:test("does the thing", function(t)
-    local r = t:use(resource)
-    -- r.client:...   -- drive it
-    t:expect(r.url):matches("^{{ scheme }}://")
-  end)
+prova.test("does the thing", function(t)
+  t:expect({{ name }}.greet("world")):equals("hello, world")
 end)
 ```
 
-Hand `r.url` (a `{{ scheme }}://…` endpoint) to the app under test via its env, and assert the effect
-either through the app's API (black-box) or directly with the client here.
+## What to build
 
-## API
+The generated `init.lua` returns a table whose fields are the API. Two common shapes it can grow into:
 
-`{{ name }}.container(ctx, opts?)` → `{ client, url, container }`
+- **A resource** — an ephemeral container the suite talks to (`prova.containerized`, docker-exec, zero
+  native code); a consumer does `require("{{ name }}").container(ctx)`.
+- **A topology** — a whole environment `prova up` can stand up, advertised via `[[plugin.topologies]]`
+  in `prova.toml` and gated on the tools it needs.
 
-- `url` — `{{ scheme }}://127.0.0.1:<port>`, the endpoint for the app under test.
-- `container` — the Docker handle (`:host_port`, `:run`, `:logs`, …).
-- `client` — the docker-exec client (implement its methods in `{{ name }}.lua`).
-
-`opts`: `image`, `tag` (default `{{ tag }}`), `timeout` — the `prova.containerized` options.
-
-## Requirements
-
-Docker at test time. Gate tests with `requires = { "docker" }` so they skip cleanly where the daemon
-is absent.
+`init.lua` carries commented starting points for both.
 
 ## Develop
 
 ```bash
-prova                       # runs tests/ against ./{{ name }}.lua (needs Docker)
-prova plugin lint {{ name }}.lua
+prova                        # run the self-test in tests/ (hermetic by default)
+prova plugin lint init.lua   # check the plugin conforms to the namespacing grammar
 ```
+
+The **Test** workflow runs the self-test on every push; the **Release** workflow (dispatched
+manually) tags the next version so consumers can pin `{{ org }}/prova-{{ name }}@vX.Y.Z`.
 
 MIT licensed.
