@@ -1,0 +1,28 @@
+name: Proofs
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  proofs:
+    name: Prova
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # This archetype proves itself in BOTH its shapes: the suite renders standalone and local, then
+      # drives each rendered plugin's own `prova` and `prova plugin lint` exactly as its author would.
+      # Both the outer run and the nested ones use the prova this action puts on PATH.
+      #
+      # Green here is the gate on releasing, and a release is what updates this archetype's entry in
+      # the package-registry (`archetypes/plugin.toml`, derived from archetype.yaml's `prova:` block).
+      # So this workflow is what stands between a broken archetype and a registered one.
+      #
+      # `version:` is pinned deliberately rather than taking the action's default: the suite is only
+      # green against a prova that has the `.prova/var/` state directory. Bump this in the same change
+      # that moves the `v1` tag.
+      - name: Run the archetype's proofs
+        uses: prova-rs/run-action@v1
+        with:
+          version: v0.13.0

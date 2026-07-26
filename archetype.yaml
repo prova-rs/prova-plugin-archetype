@@ -1,4 +1,36 @@
 ---
-description: Prova Init — Plugin Archetype (standalone repo, or local under a package's plugin_root)
+# Reads as a description of what a USER gets, not of the archetype, because this one string serves
+# both audiences: archetect shows it when listing, and it is the projection source for the
+# `description` in this archetype's package-registry entry (where it is what someone choosing an
+# archetype reads).
+description: "A prova package that also exports a namespace — a plugin (init.lua + [plugin] + self-test), as its own repo or local under a package's plugin_root"
+authors: ["Jimmie Fulton <jimmie.fulton@gmail.com>"]
+
 requires:
   archetect: "3.0.0"
+
+# Matches the project archetype. Required here, not cosmetic: the `{% if standalone %}` blocks in
+# core/prova.toml are block tags on their own lines, so without `trim_blocks` each one leaves the
+# trailing newline behind and the rendered manifest gets a blank line mid-sentence.
+templating:
+  trim_blocks: true
+  lstrip_blocks: true
+
+# Registry identity — the projection source for this archetype's `archetypes/<init_key>.toml` entry in
+# a prova package-registry (see prova's docs/design/registry.md). Everything else in that entry is
+# derived at registration time: `repo` from the repository, `latest` from the released tag,
+# `description` from above.
+#
+# These two are DECLARED because neither can be derived:
+#
+#   * `init_key` is the `prova init <key>` key. Prova deliberately does not infer a key from a repo
+#     name — that convention was removed precisely so an archetype can live at any host under any
+#     name. So the key is stated here or the archetype is not registrable; registration skips a repo
+#     with no `prova.init_key`, the same way it skips a repo with no `[plugin]` manifest.
+#   * `in_package` is publisher policy: only the archetype knows whether it CREATES a package or
+#     AUGMENTS one. This one does BOTH — its local shape renders into an existing package's
+#     `plugin_root` — so `allow` is required, and it is the reason the field belongs on the publisher
+#     rather than in every consumer's config.
+prova:
+  init_key: "plugin"
+  in_package: "allow"
