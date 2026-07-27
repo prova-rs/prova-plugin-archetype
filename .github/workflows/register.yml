@@ -3,9 +3,14 @@
 # archetype.yaml's `prova:` block plus this repo's description) is upserted with `latest` = the
 # released tag.
 #
-# Identical to the hop every plugin repo carries; only the derivation on the registry side differs
-# (archetype.yaml rather than a [plugin] manifest), and the registry decides that from what this repo
-# declares, so nothing here has to say which kind it is.
+# The same hop prova-hello and prova-vault carry (most plugin repos still rely on reconcile alone);
+# only the derivation on the registry side differs (archetype.yaml rather than a [plugin] manifest),
+# and the registry decides that from what this repo declares, so nothing here has to say which kind
+# it is.
+#
+# This only fires because release.yaml hands the release-creating action a PAT. A release published
+# under GITHUB_TOKEN cannot trigger another workflow, so pointing that input back at the default token
+# disables this file without changing a line of it.
 #
 # Why release rather than green CI: `latest` is the ref `prova init plugin` actually renders, so it
 # must name a release, not whatever `main` happens to be. The Proofs workflow is the gate ON releasing;
