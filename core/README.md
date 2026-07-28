@@ -23,10 +23,10 @@ This directory lives under the owning project's `plugin_root`, so there is nothi
 {% endif %}
 
 ```lua
-local {{ name }} = require("{{ name }}")
+local {{ ident }} = require("{{ name }}")
 
 prova.test("does the thing", function(t)
-  t:expect({{ name }}.greet("world")):equals("hello, world")
+  t:expect({{ ident }}.greet("world")):equals("hello, world")
 end)
 ```
 

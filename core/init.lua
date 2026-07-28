@@ -4,13 +4,13 @@
 -- on it is the plugin's API. That's the entire contract — everything below is a starting point to
 -- replace.
 --
---   local {{ name }} = require("{{ name }}")
---   {{ name }}.greet("world")            -- → "hello, world"
+--   local {{ ident }} = require("{{ name }}")
+--   {{ ident }}.greet("world")            -- → "hello, world"
 --
 -- Two common shapes, when you're ready for them:
 --
 --   • A RESOURCE — an ephemeral container the suite talks to (docker-exec, zero native code):
---       local {{ name }} = prova.containerized{
+--       local {{ ident }} = prova.containerized{
 --         name = "{{ name }}", image = "…", port = 1234,
 --         url    = function(host_port) return "tcp://127.0.0.1:" .. host_port end,
 --         client = function(url, opts, container) return make_client(container) end,
@@ -24,11 +24,11 @@
 --       requires = ["…"]      # tools/daemons it needs — gates `prova up` and any test that uses it
 --     and export that factory as `function(ctx, opts) … end` returning the live environment.
 
-local {{ name }} = {}
+local {{ ident }} = {}
 
 --- Replace me with the plugin's real API.
-function {{ name }}.greet(who)
+function {{ ident }}.greet(who)
   return "hello, " .. tostring(who)
 end
 
-return {{ name }}
+return {{ ident }}

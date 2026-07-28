@@ -32,6 +32,19 @@ context:set("standalone", standalone)
 local name = tostring(context:get("name"))
 context:set("repo_name", "prova-" .. name)
 
+-- A Lua-SAFE identifier for the local variable the templates declare.
+--
+-- The require name is free-form and hyphens are idiomatic in it ("operator-standards"), but a hyphen
+-- is not legal in a Lua identifier: interpolating `name` there emits `local operator-standards = {}`,
+-- which does not parse — so the scaffold's own init.lua, library stub and self-test were all dead on
+-- arrival for any hyphenated plugin. Templates use `ident` for the variable and keep `name` for the
+-- require string, the [plugin] name, and filenames.
+local ident = name:gsub("%W", "_")
+if ident:match("^%d") then
+  ident = "_" .. ident
+end
+context:set("ident", ident)
+
 local destination
 if standalone then
   destination = "prova-" .. name

@@ -4,8 +4,8 @@
 --
 -- As you grow the plugin, gate the tests that touch a real resource with `{ requires = { "docker" } }`
 -- (or the tool your topology needs), so they skip cleanly where it's absent instead of failing.
-local {{ name }} = require("{{ name }}")
+local {{ ident }} = require("{{ name }}")
 
 prova.test("greets by name", function(t)
-  t:expect({{ name }}.greet("world")):equals("hello, world")
+  t:expect({{ ident }}.greet("world")):equals("hello, world")
 end)
