@@ -3,7 +3,7 @@
 # both audiences: archetect shows it when listing, and it is the projection source for the
 # `description` in this archetype's package-registry entry (where it is what someone choosing an
 # archetype reads).
-description: "A prova package that also exports a namespace — a plugin (init.lua + [plugin] + self-test), as its own repo or local under a package's plugin_root"
+description: "A prova package that also exports a namespace — a package (init.lua + [package] + self-test), as its own repo or local under a package's packages"
 authors: ["Jimmie Fulton <jimmie.fulton@gmail.com>"]
 
 requires:
@@ -26,11 +26,11 @@ templating:
 #   * `init_key` is the `prova init <key>` key. Prova deliberately does not infer a key from a repo
 #     name — that convention was removed precisely so an archetype can live at any host under any
 #     name. So the key is stated here or the archetype is not registrable; registration skips a repo
-#     with no `prova.init_key`, the same way it skips a repo with no `[plugin]` manifest.
+#     with no `prova.init_key`, the same way it skips a repo with no `[package]` manifest.
 #   * `in_package` is publisher policy: only the archetype knows whether it CREATES a package or
 #     AUGMENTS one. This one does BOTH — its local shape renders into an existing package's
-#     `plugin_root` — so `allow` is required, and it is the reason the field belongs on the publisher
+#     `packages` — so `allow` is required, and it is the reason the field belongs on the publisher
 #     rather than in every consumer's config.
 prova:
-  init_key: "plugin"
+  init_key: "package"
   in_package: "allow"

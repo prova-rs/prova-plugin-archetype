@@ -1,7 +1,7 @@
 -- prova-{{ name }} — {{ description }}.
 --
--- A Prova plugin is just a module: `require("{{ name }}")` returns this table, and whatever you hang
--- on it is the plugin's API. That's the entire contract — everything below is a starting point to
+-- A Prova package is just a module: `require("{{ name }}")` returns this table, and whatever you hang
+-- on it is the package's API. That's the entire contract — everything below is a starting point to
 -- replace.
 --
 --   local {{ ident }} = require("{{ name }}")
@@ -18,7 +18,7 @@
 --     A consumer then does `require("{{ name }}").container(ctx)`.
 --
 --   • A TOPOLOGY — a whole environment `prova up` can stand up. Advertise it in prova.toml:
---       [[plugin.topologies]]
+--       [[package.topologies]]
 --       name     = "…"        # the public name a project references in [topologies]
 --       factory  = "…"        # the field on THIS table it resolves to
 --       requires = ["…"]      # tools/daemons it needs — gates `prova up` and any test that uses it
@@ -26,7 +26,7 @@
 
 local {{ ident }} = {}
 
---- Replace me with the plugin's real API.
+--- Replace me with the package's real API.
 function {{ ident }}.greet(who)
   return "hello, " .. tostring(who)
 end

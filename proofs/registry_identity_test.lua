@@ -4,7 +4,7 @@
 --- converges the registry onto the org's repos, and each repo dispatches on `release: published` for
 --- latency. Both paths derive this archetype's `archetypes/<init_key>.toml` entry from the fields
 --- declared in `archetype.yaml` — and both paths SKIP a repo that declares no `prova.init_key`, the
---- same way they skip a repo with no `[plugin]` manifest.
+--- same way they skip a repo with no `[package]` manifest.
 ---
 --- A skip is silent by design (most org repos are not archetypes), which is exactly the hazard: drop
 --- or typo the declaration and this archetype quietly stops being registrable, with nothing red
@@ -23,10 +23,10 @@ prova.test("archetype.yaml declares the registry identity a registration derives
 
   -- The key is the one field nothing can derive: prova resolves `prova init <key>` through the
   -- registry rather than inferring a repo name from it, so the archetype has to state it.
-  t:expect(prova_block.init_key, "prova.init_key names the `prova init <key>` key"):equals("plugin")
+  t:expect(prova_block.init_key, "prova.init_key names the `prova init <key>` key"):equals("package")
 
   -- Publisher policy: this archetype has a LOCAL shape that renders into an existing package's
-  -- `plugin_root`, so `allow` is load-bearing. `deny` here would make `prova init plugin` refuse the
+  -- `packages`, so `allow` is load-bearing. `deny` here would make `prova init package` refuse the
   -- in-package case outright — the shape half this archetype exists to provide.
   t:expect(prova_block.in_package):equals("allow")
 end)

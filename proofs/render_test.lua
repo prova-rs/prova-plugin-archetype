@@ -1,10 +1,10 @@
--- The proof that `prova init plugin` produces a *working* plugin in BOTH its shapes — standalone
+-- The proof that `prova init package` produces a *working* package in BOTH its shapes — standalone
 -- (core + repo trappings, a repo-ready directory) and local (core only, under the owning package's
--- plugin_root). Black-box throughout: render into a tempdir, inspect the tree, then drive the
--- rendered plugin's own `prova` and `prova plugin lint` exactly as its author would.
+-- packages). Black-box throughout: render into a tempdir, inspect the tree, then drive the
+-- rendered package's own `prova` and `prova package lint` exactly as its author would.
 --
 -- The local variant is exercised by supplying the same switch + answers `prova init` injects
--- (`prova:in-package`, `prova_package_root`, `prova_plugin_root`) — prova's own tests prove the
+-- (`prova:in-package`, `prova_package_root`, `prova_packages_dir`) — prova's own tests prove the
 -- injection itself; this proof owns what the archetype DOES with it.
 --
 -- The nested run uses `$PROVA_BIN` if set (so a dev can pin the binary under test), else `prova` on
@@ -16,7 +16,7 @@ local PROVA = os.getenv("PROVA_BIN") or "prova"
 local standalone = prova.fixture("standalone", Scope.File, function(ctx)
 	return archetect.render({
 		source = ARCHETYPE,
-		answers = { name = "acme", description = "A test plugin" },
+		answers = { name = "acme", description = "A test package" },
 		defaults = true, -- org/author take their prompt defaults
 		destination = ctx:tempdir(),
 	})
@@ -24,14 +24,14 @@ end)
 
 local localized = prova.fixture("localized", Scope.File, function(ctx)
 	-- The destination stands in for an owning package's root; the switch + answers are exactly what
-	-- `prova init` injects when the cwd is inside a package with a declared plugin_root.
+	-- `prova init` injects when the cwd is inside a package with a declared packages.
 	return archetect.render({
 		source = ARCHETYPE,
 		answers = {
 			name = "acme",
-			description = "A test plugin",
+			description = "A test package",
 			prova_package_root = ".",
-			prova_plugin_root = ".prova/plugins",
+			prova_packages_dir = ".prova/packages",
 		},
 		switches = { "prova:in-package" },
 		destination = ctx:tempdir(),
@@ -40,7 +40,7 @@ end)
 
 -- Layout + no un-rendered `{{ }}` markers, via the declarative harness on the existing renders.
 archetect.verify(standalone, {
-	name = "plugin-standalone",
+	name = "package-standalone",
 	expected_files = {
 		"prova-acme/prova.toml",
 		"prova-acme/init.lua",
@@ -56,13 +56,13 @@ archetect.verify(standalone, {
 })
 
 archetect.verify(localized, {
-	name = "plugin-local",
+	name = "package-local",
 	expected_files = {
-		".prova/plugins/acme/prova.toml",
-		".prova/plugins/acme/init.lua",
-		".prova/plugins/acme/library/acme.lua",
-		".prova/plugins/acme/proofs/acme_test.lua",
-		".prova/plugins/acme/README.md",
+		".prova/packages/acme/prova.toml",
+		".prova/packages/acme/init.lua",
+		".prova/packages/acme/library/acme.lua",
+		".prova/packages/acme/proofs/acme_test.lua",
+		".prova/packages/acme/README.md",
 	},
 })
 
@@ -78,12 +78,12 @@ prova.describe("the standalone render", function()
 		t:expect(readme, "standalone README must carry the consumer pin"):contains("tag = \"v1\"")
 	end)
 
-	prova.test("self-test runs green and the plugin lints clean", function(t)
+	prova.test("self-test runs green and the package lints clean", function(t)
 		local tree = t:use(standalone)
 		local dir = tree:dir("prova-acme").path
 		local r = run_in(dir, PROVA)
 		t:expect(r.code, "prova exited non-zero:\n" .. r.stderr .. r.stdout):equals(0)
-		local lint = run_in(dir, PROVA .. " plugin lint init.lua")
+		local lint = run_in(dir, PROVA .. " package lint init.lua")
 		t:expect(lint.code, "lint failed:\n" .. lint.stderr .. lint.stdout):equals(0)
 	end)
 end)
@@ -96,31 +96,31 @@ end)
 prova.describe("the local render", function()
 	prova.test("carries no repo trappings", function(t)
 		local tree = t:use(localized)
-		t:expect(tree:file(".prova/plugins/acme/LICENSE")):never():exists()
-		t:expect(tree:file(".prova/plugins/acme/.version-line")):never():exists()
-		t:expect(tree:dir(".prova/plugins/acme/.github")):never():exists()
-		local readme = tree:file(".prova/plugins/acme/README.md"):read()
+		t:expect(tree:file(".prova/packages/acme/LICENSE")):never():exists()
+		t:expect(tree:file(".prova/packages/acme/.version-line")):never():exists()
+		t:expect(tree:dir(".prova/packages/acme/.github")):never():exists()
+		local readme = tree:file(".prova/packages/acme/README.md"):read()
 		t:expect(readme, "local README must not sell a git pin"):never():contains("tag = \"v1\"")
 	end)
 
 	prova.test("self-test runs green in place", function(t)
 		local tree = t:use(localized)
-		local dir = tree:dir(".prova/plugins/acme").path
+		local dir = tree:dir(".prova/packages/acme").path
 		local r = run_in(dir, PROVA)
 		t:expect(r.code, "prova exited non-zero:\n" .. r.stderr .. r.stdout):equals(0)
 	end)
 
-	prova.test("without a plugin_root the render fails with guidance", function(t)
+	prova.test("without a packages the render fails with guidance", function(t)
 		local dest = t:use(scratch).path
 		local ok, err = pcall(function()
 			return archetect.render({
 				source = ARCHETYPE,
-				answers = { name = "acme", description = "A test plugin" },
-				switches = { "prova:in-package" }, -- in a package, but no plugin_root answer
+				answers = { name = "acme", description = "A test package" },
+				switches = { "prova:in-package" }, -- in a package, but no packages answer
 				destination = dest,
 			})
 		end)
-		t:expect(ok, "a local render without plugin_root must error"):equals(false)
-		t:expect(tostring(err)):contains("plugin_root")
+		t:expect(ok, "a local render without packages must error"):equals(false)
+		t:expect(tostring(err)):contains("packages")
 	end)
 end)

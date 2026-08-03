@@ -12,11 +12,11 @@ jobs:
       - uses: actions/checkout@v4
 
       # This archetype proves itself in BOTH its shapes: the suite renders standalone and local, then
-      # drives each rendered plugin's own `prova` and `prova plugin lint` exactly as its author would.
+      # drives each rendered package's own `prova` and `prova package lint` exactly as its author would.
       # Both the outer run and the nested ones use the prova this action puts on PATH.
       #
       # Green here is the gate on releasing, and a release is what updates this archetype's entry in
-      # the package-registry (`archetypes/plugin.toml`, derived from archetype.yaml's `prova:` block).
+      # the package-registry (`archetypes/package.toml`, derived from archetype.yaml's `prova:` block).
       # So this workflow is what stands between a broken archetype and a registered one.
       #
       # `version:` is pinned deliberately rather than taking the action's default: the suite is only

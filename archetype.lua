@@ -1,13 +1,13 @@
--- prova-init-plugin-archetype — scaffolds a Prova package that acts as a plugin, in one of two
+-- prova-init-package-archetype — scaffolds a Prova package that acts as a package, in one of two
 -- shapes sharing a single core (init.lua + dual-role prova.toml + library stub + self-test):
 --
 --   • STANDALONE (its own repo): core + repo trappings (LICENSE, CI workflows, .gitignore,
 --     .version-line), rendered into `prova-<name>/`. Consumers pin it as a git dependency.
---   • LOCAL (inside an existing package): core only, rendered into the package's `plugin_root`;
+--   • LOCAL (inside an existing package): core only, rendered into the package's `packages`;
 --     `require("<name>")` reaches it with zero declaration.
 --
 -- The variant is decided by WHERE the render runs: `prova init` injects the `prova:in-package`
--- switch and the `prova_package_root` / `prova_plugin_root` answers whenever the cwd is inside a
+-- switch and the `prova_package_root` / `prova_packages_dir` answers whenever the cwd is inside a
 -- prova package (see prova's catalog docs on state injection) — in-package renders default to the
 -- local shape. Pass `-s standalone` to force the repo shape anywhere.
 --
@@ -19,8 +19,8 @@ local context = Context.new()
 local in_package = archetype.switches.is_enabled("prova:in-package")
 local standalone = archetype.switches.is_enabled("standalone") or not in_package
 
-context:prompt_text("Plugin name (the require name, lowercase — e.g. 'parallels'):", "name")
-context:prompt_text("One-line description:", "description", { default = "A Prova plugin" })
+context:prompt_text("Package name (the require name, lowercase — e.g. 'parallels'):", "name")
+context:prompt_text("One-line description:", "description", { default = "A Prova package" })
 if standalone then
   context:prompt_text("GitHub org/owner (for the consumer-pin example + README):", "org",
       { default = "prova-rs" })
@@ -37,8 +37,8 @@ context:set("repo_name", "prova-" .. name)
 -- The require name is free-form and hyphens are idiomatic in it ("operator-standards"), but a hyphen
 -- is not legal in a Lua identifier: interpolating `name` there emits `local operator-standards = {}`,
 -- which does not parse — so the scaffold's own init.lua, library stub and self-test were all dead on
--- arrival for any hyphenated plugin. Templates use `ident` for the variable and keep `name` for the
--- require string, the [plugin] name, and filenames.
+-- arrival for any hyphenated package. Templates use `ident` for the variable and keep `name` for the
+-- require string, the [package] name, and filenames.
 local ident = name:gsub("%W", "_")
 if ident:match("^%d") then
   ident = "_" .. ident
@@ -49,13 +49,13 @@ local destination
 if standalone then
   destination = "prova-" .. name
 else
-  local plugin_root = context:get("prova_plugin_root")
-  if plugin_root == nil then
-    error("this package declares no plugin_root — add `plugin_root = \".prova/plugins\"` to [run] "
-        .. "in its manifest, or pass `-s standalone` to scaffold a standalone plugin repo instead")
+  local packages = context:get("prova_packages_dir")
+  if packages == nil then
+    error("this package declares no packages directory — add `packages = \".prova/packages\"` to [run] "
+        .. "in its manifest, or pass `-s standalone` to scaffold a standalone package repo instead")
   end
   local package_root = tostring(context:get("prova_package_root") or ".")
-  destination = package_root .. "/" .. tostring(plugin_root) .. "/" .. name
+  destination = package_root .. "/" .. tostring(packages) .. "/" .. name
 end
 
 directory.render("core", context, { destination = destination, if_exists = Existing.Overwrite })
@@ -72,15 +72,15 @@ end
 
 output.print("")
 if standalone then
-  output.print("Standalone plugin created in " .. destination .. "/:")
-  row("init.lua", "the namespace — author the plugin's API here")
+  output.print("Standalone package created in " .. destination .. "/:")
+  row("init.lua", "the namespace — author the package's API here")
   row(stub, "the LuaCATS stub consumers' editors read")
   row("proofs/", "the self-test; CI runs it via the Test workflow")
   output.print("")
   output.print("Run `prova` inside it to execute the self-test.")
 else
-  output.print("Local plugin created in " .. destination .. "/:")
+  output.print("Local package created in " .. destination .. "/:")
   row("init.lua", "the namespace — `require(\"" .. name .. "\")` from any proof")
   row(stub, "the LuaCATS stub your editor reads")
-  row("proofs/", "its self-test (run `prova` inside the plugin's directory)")
+  row("proofs/", "its self-test (run `prova` inside the package's directory)")
 end
