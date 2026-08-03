@@ -25,4 +25,4 @@ jobs:
       - name: Run the archetype's proofs
         uses: prova-rs/run-action@v1
         with:
-          version: v0.13.0
+          version: v0.16.0
